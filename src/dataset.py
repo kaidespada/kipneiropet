@@ -149,7 +149,7 @@ class MNISTSubsetPrepared:
         )
 
     
-    def __save_split(self, dataset, split_name: srt):
+    def _save_split(self, dataset, split_name: str):
 
         split_dir = os.path.join(
             self.dataset_dir,
