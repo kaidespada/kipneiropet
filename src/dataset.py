@@ -1,11 +1,13 @@
-import os 
-import shutil
-from ultralytics import YOLO
+import os
 
-# Переподготовка датасета под 0 - 5
+import shutil
+
+from torchvision import datasets
+
+
+# Подготовка датасета под классы 0 - 5
 
 class MNISTSubsetPrepared:
-
 
     def __init__(self, dataset_name: str = "mnist"):
 
@@ -13,24 +15,28 @@ class MNISTSubsetPrepared:
 
         # Папка с подготовленным датасетом
         self.dataset_dir = os.path.join(
-            ".", "data", dataset_name
+            ".",
+            "data",
+            dataset_name
         )
 
         # Временная папка для оригинального MNIST
         self.raw_dir = os.path.join(
-            ".", "data", "raw"
+            ".",
+            "data",
+            "raw"
         )
 
-    
     def prepare(self):
 
         print("Подготовка к скачиванию")
 
-        if self.is_dataset_ready():
+        if self._is_dataset_ready():
+
             print("Датасет уже подготовлен")
+
             return
 
-    
         self._create_directories()
 
         self._download_mnist()
@@ -43,10 +49,9 @@ class MNISTSubsetPrepared:
 
         print("Датасет подготовлен")
 
-
     def _is_dataset_ready(self):
 
-        # Проверка вообще на наличие датасета
+        # Проверка наличия датасета
 
         train_dir = os.path.join(
             self.dataset_dir,
@@ -59,9 +64,11 @@ class MNISTSubsetPrepared:
         )
 
         if not os.path.exists(train_dir):
+
             return False
 
         if not os.path.exists(test_dir):
+
             return False
 
         for digit in ["0", "1", "2", "3", "4", "5"]:
@@ -77,13 +84,14 @@ class MNISTSubsetPrepared:
             )
 
             if not os.path.exists(train_class):
+
                 return False
 
             if not os.path.exists(test_class):
+
                 return False
 
         return True
-
 
     def _create_directories(self):
 
@@ -96,11 +104,10 @@ class MNISTSubsetPrepared:
             self.raw_dir,
             exist_ok=True
         )
-    
 
     def _download_mnist(self):
 
-        # Загрузка MNIST через tortchvision
+        # Загрузка MNIST через torchvision
 
         print("Скачивание MNIST")
 
@@ -118,14 +125,12 @@ class MNISTSubsetPrepared:
 
         print("MNIST скачан")
 
-    
     def _convert_dataset(self):
 
-        # Работа с MNIST под YOLO Classification
+        # Преобразование MNIST под YOLO Classification
 
         print("Преобразование датасета под стандарты YOLO")
 
-        
         train_dataset = datasets.MNIST(
             root=self.raw_dir,
             train=True,
@@ -148,7 +153,6 @@ class MNISTSubsetPrepared:
             "test"
         )
 
-    
     def _save_split(self, dataset, split_name: str):
 
         split_dir = os.path.join(
@@ -160,8 +164,9 @@ class MNISTSubsetPrepared:
 
             image, label = dataset[index]
 
-            # Оставляем только цифры 0-5
+            # Оставляем только цифры 0 - 5
             if label > 5:
+
                 continue
 
             class_dir = os.path.join(
@@ -185,12 +190,11 @@ class MNISTSubsetPrepared:
             f"Часть '{split_name}' готова."
         )
 
-
     def _remove_extra_classes(self):
 
-        # Удаление лишних классов (6-9)
+        # Удаление лишних классов 6 - 9
 
-        print ("Удаление лишних файлов")
+        print("Удаление лишних файлов")
 
         for split in ["train", "test"]:
 
@@ -200,6 +204,7 @@ class MNISTSubsetPrepared:
             )
 
             if not os.path.exists(split_dir):
+
                 continue
 
             for digit in ["6", "7", "8", "9"]:
@@ -211,25 +216,21 @@ class MNISTSubsetPrepared:
 
                 if os.path.exists(digit_dir):
 
-                    shutil.rmtree(digit_dir)
+                    shutil.rmtree(
+                        digit_dir
+                    )
 
                     print(
                         f"Удалена папка: "
                         f"{digit_dir}"
                     )
-        
 
-        def _remove_raw_dataset(self):
+    def _remove_raw_dataset(self):
 
-            if os.path.exists(self.raw_dir):
+        if os.path.exists(self.raw_dir):
 
-                shutil.rmtree(
-                    self.raw_dir
-                )
+            shutil.rmtree(
+                self.raw_dir
+            )
 
-            print("Временные файлы удалены")
-
-
-            
-            
-        
+        print("Временные файлы удалены")
