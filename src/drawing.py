@@ -1,4 +1,7 @@
 import tkinter as tk
+import os
+
+from PIL import Image, ImageDraw, ImageOps
 
 
 class DrawingWindow:
@@ -22,6 +25,17 @@ class DrawingWindow:
 
         self.canvas.pack(
             pady=20
+        )
+
+        # Изображение, которое будет отправляться модели
+        self.image = Image.new(
+            "L",
+            (280, 280),
+            0
+        )
+
+        self.image_draw = ImageDraw.Draw(
+            self.image
         )
 
         self.canvas.bind(
@@ -64,6 +78,7 @@ class DrawingWindow:
         x = event.x
         y = event.y
 
+        # Canvas
         self.canvas.create_oval(
             x - 8,
             y - 8,
@@ -73,9 +88,30 @@ class DrawingWindow:
             outline="white"
         )
 
+        # Записываем рисунок в PIL Image
+        self.image_draw.ellipse(
+            (
+                x - 8,
+                y - 8,
+                x + 8,
+                y + 8
+            ),
+            fill=255
+        )
+
     def clear(self):
 
         self.canvas.delete("all")
+
+        self.image = Image.new(
+            "L",
+            (280, 280),
+            0
+        )
+
+        self.image_draw = ImageDraw.Draw(
+            self.image
+        )
 
         self.result_label.config(
             text="Нарисуйте цифру от 0 до 5"
@@ -83,7 +119,40 @@ class DrawingWindow:
 
     def recognize(self):
 
-        print("Распознавание...")
+        if self.model is None:
+            self.result_label.config(
+                text="Модель не загружена"
+            )
+            return
+
+        image = ImageOps.invert(self.image)
+
+        # Приводим размер к размеру, который использовался при обучении
+        image = image.resize(
+            (64, 64)
+        )
+
+        image_path = "temp_digit.png"
+
+        image.save(
+            image_path
+        )
+
+        # Передаём картинку обученной модели
+        class_id, confidence = self.model.predict(
+            image_path
+        )
+
+        confidence_percent = confidence * 100
+
+        self.result_label.config(
+            text=f"Это цифра {class_id}\n"
+                 f"Уверенность: {confidence_percent:.2f}%"
+        )
+
+        # Удаляем временную картинку
+        if os.path.exists(image_path):
+            os.remove(image_path)
 
     def run(self):
 

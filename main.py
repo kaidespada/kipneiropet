@@ -26,7 +26,7 @@ def main():
     )
 
     window = DrawingWindow(
-        model=None
+        model=model
     )
     window.run()
 
